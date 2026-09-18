@@ -1,0 +1,85 @@
+import React, { useEffect, useState } from 'react'
+import Input from './Input'
+import { LoaderCircle } from 'lucide-react';
+import EmojiPopUp from './EmojiPopUp';
+
+const AddCategoryForm = ({ onAddCategory, initialCategory, isEditing }) => {
+    const [loading, setLoading] = useState(false);
+
+    const [category, setCategory] = useState({
+        name: "",
+        type: "",
+        icon: ""
+    })
+
+    const categoryTypeOptions = [
+        { value: "", label: "Select Category Type", disabled: true },
+        { value: "income", label: "Income" },
+        { value: "expense", label: "Expense" },
+    ]
+
+    const handleChange = (key, value) => {
+        setCategory({ ...category, [key]: value })
+    }
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try{
+            await onAddCategory(category);
+        }finally{
+            setLoading(false);
+        }
+    }
+
+    useEffect( () => {
+        if (isEditing && initialCategory) {
+            setCategory(initialCategory);
+        } else {
+            setCategory({name: "", type: "", icon: ""});
+        }
+    }, [isEditing, initialCategory]);
+    
+    return (
+        <div className="p-4">
+            <EmojiPopUp
+                icon={category.icon}
+                onSelect={(selectedIcon) => handleChange("icon", selectedIcon)}
+            />
+            <Input
+                value={category.name}
+                onChange={({target}) => handleChange("name", target.value)}
+                label="Category Name"
+                placeholder="e.g., Freelance, Salary, Groceries"
+                type="text"
+            />
+            <Input
+                label="Category Type"
+                value={category.type}
+                onChange={({target}) => handleChange("type", target.value)}
+                isSelect={true}
+                options={categoryTypeOptions}
+            />
+
+            <div className="flex justify-end mt-6">
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="form-btn">
+                    {loading ? (
+                        <>
+                            <LoaderCircle className="w-4 h-4 animate-spin"/>
+                            {isEditing ? "Updating..." : "Adding..."}
+                        </>
+                    ): (
+                        <>
+                            {isEditing ? "Update Category" : "Add Category"}
+                        </>
+                    )}
+                </button>
+            </div>
+        </div>
+    )
+}
+
+export default AddCategoryForm
